@@ -17,8 +17,7 @@ else:
 # 使用字典键访问配置项，而不是属性
 CITY = config.get("CITY")
 START_DATE = config.get("START_DATE")
-BIRTHDAY = config.get(RTH
-"BIRTHDAY")
+BIRTHDAY = config.get("BIRTHDAY")
 APP_ID = config.get("APP_ID")
 APP_SECRET = config.get("APP_SECRET")
 USER_ID = config.get("USER_ID")
