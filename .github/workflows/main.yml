@@ -23,10 +23,7 @@ jobs:
 
       - name: Set environment variables from GitHub Secrets
         run: |
-          # 确保 base64 输出为一行，并正确设置环境变量
-          echo "CONFIG=$(echo -n \"$CONFIG\" | base64)" >> $GITHUB_ENV
-        env:
-          CONFIG: ${{ secrets.CONFIG }}
+          echo "CONFIG=${{ secrets.BASE64_CONFIG }}" >> $GITHUB_ENV
 
       - name: Run the Python script
         run: python3 main.py
