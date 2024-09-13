@@ -1,11 +1,18 @@
-import os
-import config  # 加载 dotenv 包
+import os  
 from datetime import date, datetime, timedelta
 import random
 import requests
 from wechatpy import WeChatClient
 from wechatpy.client.api import WeChatMessage
+import json
 
+# 获取 JSON 字符串
+ceshi_json = os.getenv("ceshi")
+if ceshi_json:
+    # 解析 JSON 字符串
+    config = json.loads(ceshi_json)
+else:
+    config = {}
 location = config.CITY
 api_key = config.api_key  # 确保你的 .env 文件中有 API_KEY
 
