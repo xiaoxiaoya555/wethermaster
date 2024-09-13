@@ -2,28 +2,24 @@ name: weixin
 on:
   workflow_dispatch
 jobs:
+#将工作流程中运行的所有作业组合在一起
   build:
-    runs-on: ubuntu-latest
+  #定义名为 build 的作业。 子键将定义作业的属性 
+    runs-on: ubuntu-latest 
     steps:
       - uses: actions/checkout@v2
-
+    
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
-
       - name: Set timezone
         run: |
           cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-
-      - name: Install pip packages
+      - name: install pip packages
         run: |
           python -m pip install --upgrade pip
           pip3 install -r requirements.txt
-
-      - name: Set environment variables from GitHub Secrets
+      - name: weixin
         run: |
-          echo "CONFIG=${{ secrets.BASE64_CONFIG }}" >> $GITHUB_ENV
-
-      - name: Run the Python script
-        run: python3 main.py
+          python3 main.py
