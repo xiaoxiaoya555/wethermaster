@@ -35,54 +35,37 @@ def get_shift(day_offset=0):
 
 # 获取天气数据
 def get_weather():
+    # 从配置中获取 location (城市) 和 api_key
+    config_json = os.getenv("CONFIG")
+    if config_json:
+        config = json.loads(config_json)
+        location = config.get("CITY")  # 获取 CITY
+        api_key = config.get("api_key")  # 获取 API 密钥
+    else:
+        raise ValueError("配置未找到")
+
+    # 确保 location 和 api_key 存在
+    if not location or not api_key:
+        raise ValueError("未能获取到城市或API密钥")
+
     url = f"https://geoapi.qweather.com/v2/city/lookup?location={location}&key={api_key}"
     response = requests.get(url)
     data = response.json()
+    
+    # 假设此处解析到的结果可以正确提取
+    city_id = data['location'][0]['id']  # 获取城市ID
+    url_weather = f"https://devapi.qweather.com/v7/weather/now?location={city_id}&key={api_key}"
+    weather_response = requests.get(url_weather)
+    weather_data = weather_response.json()
 
-    if 'location' in data:
-        for location_info in data['location']:
-            if location_info['country'] == '中国':
-                city_id = location_info['id']
-                break
-        else:
-            raise ValueError("无法获取城市 ID")
+    today_weather = weather_data['now']['text']
+    tomorrow_weather = "Sample for tomorrow"  # 这里的逻辑需要根据 API 来写
 
-        url2 = f'https://devapi.qweather.com/v7/weather/3d?location={city_id}&key={api_key}'
-        response2 = requests.get(url2)
-        weather_data = response2.json()
+    return today_weather, tomorrow_weather
 
-        if 'daily' in weather_data:
-            today_date = datetime.now().strftime('%Y-%m-%d')
-            tomorrow_date = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
-
-            today_weather = None
-            tomorrow_weather = None
-
-            for day_weather in weather_data['daily']:
-                date = day_weather['fxDate']
-                if date == today_date:
-                    today_weather = {
-                        'tempMax': day_weather['tempMax'],
-                        'tempMin': day_weather['tempMin'],
-                        'textDay': day_weather['textDay'],
-                        'textNight': day_weather['textNight']
-                    }
-                elif date == tomorrow_date:
-                    tomorrow_weather = {
-                        'tempMax': day_weather['tempMax'],
-                        'tempMin': day_weather['tempMin'],
-                        'textDay': day_weather['textDay'],
-                        'textNight': day_weather['textNight']
-                    }
-            if today_weather and tomorrow_weather:
-                return today_weather, tomorrow_weather
-            else:
-                raise ValueError("无法获取今天或明天的天气数据")
-        else:
-            raise ValueError("API 响应中未包含 'daily' 数据")
-    else:
-        raise ValueError("API 响应中未包含 'location' 数据")
-
+def send_message():
+    today_weather, tomorrow_weather = get_weather()
+    print(f"Today's weather: {today_weather}, Tomorrow's weather: {tomorrow_weather}")
 # 计算天数
 def get_count():
     delta = today - datetime.strptime(start_date, "%Y-%m-%d")
