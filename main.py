@@ -1,34 +1,26 @@
-import os  
+import os
+import config  # 加载 dotenv 包
 from datetime import date, datetime, timedelta
 import random
 import requests
 from wechatpy import WeChatClient
 from wechatpy.client.api import WeChatMessage
-import json
-import base64
-a={
-  "BANCI": "中,中,中,晚,休,休,早,早,中,晚,晚,休,休,早,早,早,早,中,休,早,早,早,中,中,中,休,早,中,中,晚"
-}
-# 从环境变量中获取 base64 编码的配置 JSON 字符串
-config_base64 = os.getenv("CONFIG")
-if config_base64:
-    # 解码 base64 并将 JSON 字符串转换为字典
-    config_json = base64.b64decode(config_base64).decode("utf-8")
-    config = json.loads(config_json)
-else:
-    raise ValueError("配置未找到")
 
-# 使用字典中的配置项
-CITY = config.get("CITY")
-START_DATE = config.get("START_DATE")
-BIRTHDAY = config.get("BIRTHDAY")
-APP_ID = config.get("APP_ID")
-APP_SECRET = config.get("APP_SECRET")
-USER_ID = config.get("USER_ID")
-TEMPLATE_ID = config.get("TEMPLATE_ID")
-API_KEY = config.get("api_key")
-WORD_KEY = config.get("word_key")
-BANCI = a.get("BANCI", "").split(",")
+location = config.CITY
+api_key = config.api_key  # 确保你的 .env 文件中有 API_KEY
+
+today = datetime.now()
+start_date = config.START_DATE
+birthday = config.BIRTHDAY
+
+app_id = config.APP_ID
+app_secret = config.APP_SECRET
+user_id = config.USER_ID
+template_id = config.TEMPLATE_ID
+word_key = config.word_key
+
+# 王晨的班次数据，从1号到30号
+shifts = config.banci
 
 # 根据当前日期获取今天或明天的班次
 def get_shift(day_offset=0):
@@ -39,37 +31,54 @@ def get_shift(day_offset=0):
 
 # 获取天气数据
 def get_weather():
-    # 从配置中获取 location (城市) 和 api_key
-    config_json = os.getenv("CONFIG")
-    if config_json:
-        config = json.loads(config_json)
-        location = config.get("CITY")  # 获取 CITY
-        api_key = config.get("api_key")  # 获取 API 密钥
-    else:
-        raise ValueError("配置未找到")
-
-    # 确保 location 和 api_key 存在
-    if not location or not api_key:
-        raise ValueError("未能获取到城市或API密钥")
-
     url = f"https://geoapi.qweather.com/v2/city/lookup?location={location}&key={api_key}"
     response = requests.get(url)
     data = response.json()
-    
-    # 假设此处解析到的结果可以正确提取
-    city_id = data['location'][0]['id']  # 获取城市ID
-    url_weather = f"https://devapi.qweather.com/v7/weather/now?location={city_id}&key={api_key}"
-    weather_response = requests.get(url_weather)
-    weather_data = weather_response.json()
 
-    today_weather = weather_data['now']['text']
-    tomorrow_weather = "Sample for tomorrow"  # 这里的逻辑需要根据 API 来写
+    if 'location' in data:
+        for location_info in data['location']:
+            if location_info['country'] == '中国':
+                city_id = location_info['id']
+                break
+        else:
+            raise ValueError("无法获取城市 ID")
 
-    return today_weather, tomorrow_weather
+        url2 = f'https://devapi.qweather.com/v7/weather/3d?location={city_id}&key={api_key}'
+        response2 = requests.get(url2)
+        weather_data = response2.json()
 
-def send_message():
-    today_weather, tomorrow_weather = get_weather()
-    print(f"Today's weather: {today_weather}, Tomorrow's weather: {tomorrow_weather}")
+        if 'daily' in weather_data:
+            today_date = datetime.now().strftime('%Y-%m-%d')
+            tomorrow_date = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+
+            today_weather = None
+            tomorrow_weather = None
+
+            for day_weather in weather_data['daily']:
+                date = day_weather['fxDate']
+                if date == today_date:
+                    today_weather = {
+                        'tempMax': day_weather['tempMax'],
+                        'tempMin': day_weather['tempMin'],
+                        'textDay': day_weather['textDay'],
+                        'textNight': day_weather['textNight']
+                    }
+                elif date == tomorrow_date:
+                    tomorrow_weather = {
+                        'tempMax': day_weather['tempMax'],
+                        'tempMin': day_weather['tempMin'],
+                        'textDay': day_weather['textDay'],
+                        'textNight': day_weather['textNight']
+                    }
+            if today_weather and tomorrow_weather:
+                return today_weather, tomorrow_weather
+            else:
+                raise ValueError("无法获取今天或明天的天气数据")
+        else:
+            raise ValueError("API 响应中未包含 'daily' 数据")
+    else:
+        raise ValueError("API 响应中未包含 'location' 数据")
+
 # 计算天数
 def get_count():
     delta = today - datetime.strptime(start_date, "%Y-%m-%d")
