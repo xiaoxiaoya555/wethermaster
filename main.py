@@ -6,28 +6,26 @@ from wechatpy import WeChatClient
 from wechatpy.client.api import WeChatMessage
 import json
 
-# 获取 JSON 字符串
-ceshi_json = os.getenv("ceshi")
-if ceshi_json:
-    # 解析 JSON 字符串
-    config = json.loads(ceshi_json)
+# 从环境变量中获取配置 JSON 字符串
+config_json = os.getenv("CONFIG")
+if config_json:
+    # 将 JSON 字符串转换为字典
+    config = json.loads(config_json)
 else:
     config = {}
-location = config.CITY
-api_key = config.api_key  # 确保你的 .env 文件中有 API_KEY
 
-today = datetime.now()
-start_date = config.START_DATE
-birthday = config.BIRTHDAY
-
-app_id = config.APP_ID
-app_secret = config.APP_SECRET
-user_id = config.USER_ID
-template_id = config.TEMPLATE_ID
-word_key = config.word_key
-
-# 王晨的班次数据，从1号到30号
-shifts = config.banci
+# 使用字典键访问配置项，而不是属性
+CITY = config.get("CITY")
+START_DATE = config.get("START_DATE")
+BIRTHDAY = config.get(RTH
+"BIRTHDAY")
+APP_ID = config.get("APP_ID")
+APP_SECRET = config.get("APP_SECRET")
+USER_ID = config.get("USER_ID")
+TEMPLATE_ID = config.get("TEMPLATE_ID")
+API_KEY = config.get("API_KEY")
+WORD_KEY = config.get("WORD_KEY")
+BANCI = config.get("BANCI", "").split(",")
 
 # 根据当前日期获取今天或明天的班次
 def get_shift(day_offset=0):
