@@ -5,16 +5,18 @@ import requests
 from wechatpy import WeChatClient
 from wechatpy.client.api import WeChatMessage
 import json
+import base64
 
-# 从环境变量中获取配置 JSON 字符串
-config_json = os.getenv("CONFIG")
-if config_json:
-    # 将 JSON 字符串转换为字典
+# 从环境变量中获取 base64 编码的配置 JSON 字符串
+config_base64 = os.getenv("CONFIG")
+if config_base64:
+    # 解码 base64 并将 JSON 字符串转换为字典
+    config_json = base64.b64decode(config_base64).decode("utf-8")
     config = json.loads(config_json)
 else:
-    config = {}
+    raise ValueError("配置未找到")
 
-# 使用字典键访问配置项，而不是属性
+# 使用字典中的配置项
 CITY = config.get("CITY")
 START_DATE = config.get("START_DATE")
 BIRTHDAY = config.get("BIRTHDAY")
@@ -22,10 +24,9 @@ APP_ID = config.get("APP_ID")
 APP_SECRET = config.get("APP_SECRET")
 USER_ID = config.get("USER_ID")
 TEMPLATE_ID = config.get("TEMPLATE_ID")
-API_KEY = config.get("API_KEY")
-WORD_KEY = config.get("WORD_KEY")
+API_KEY = config.get("api_key")
+WORD_KEY = config.get("word_key")
 BANCI = config.get("BANCI", "").split(",")
-
 # 根据当前日期获取今天或明天的班次
 def get_shift(day_offset=0):
     # 根据当前日期计算班次的索引
