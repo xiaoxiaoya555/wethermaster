@@ -3,14 +3,14 @@ on:
   workflow_dispatch
 jobs:
   build:
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set up Python 3.8
+      - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.9.1
 
       - name: Set timezone
         run: |
@@ -23,7 +23,7 @@ jobs:
 
       - name: Set environment variables from GitHub Secrets
         run: |
-          echo "CONFIG=$CONFIG" >> $GITHUB_ENV
+          echo "CONFIG=$(echo $CONFIG | base64)" >> $GITHUB_ENV
         env:
           CONFIG: ${{ secrets.CONFIG }}
 
