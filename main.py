@@ -93,11 +93,18 @@ def get_birthday():
 
 # 获取每日一句
 def get_words():
-    words = requests.get(f"https://apis.tianapi.com/wanan/index?key={word_key}")
-    if words.status_code == 200:
-        return words.json()['result']['content']
-    return "获取每日一句失败"
+    response = requests.get(f"https://apis.tianapi.com/wanan/index?key={word_key}")
+    if response.status_code == 200:
+        full_sentence = response.json()['result']['content']
 
+        # 将句子拆分为两部分
+        mid_index = len(full_sentence) // 2
+        word1 = full_sentence[:19].strip()  # 前19个字
+        word2 = full_sentence[19:38].strip()
+        word3=full_sentence[38:]# 剩余部分
+
+        return word1, word2,word3
+    return "获取每日一句失败", ""
 # 获取黄历信息
 def get_huangli():
     huangli_url = f"https://apis.tianapi.com/lunar/index?key={word_key}"
@@ -131,17 +138,19 @@ def get_huangli():
         return None
 
 # 生成随机颜色
+
+
 def get_random_color():
     return "#%06x" % random.randint(0, 0xFFFFFF)
 
-# 发送微信消息
 def send_message():
     today_weather, tomorrow_weather = get_weather()
-    huangli_info = get_huangli()  # 获取黄历信息
+    huangli_info = get_huangli()
+    word1, word2,word3 = get_words()  # 获取完整的每日一句并分割
+
     client = WeChatClient(app_id, app_secret)
     wm = WeChatMessage(client)
 
-    # 如果获取黄历信息失败，返回默认值
     if not huangli_info:
         huangli_info = {
             "gregorian": "获取公历失败",
@@ -151,27 +160,26 @@ def send_message():
             "fitness": "无宜做的事情",
             "taboo": "无忌做的事情"
         }
-
-    # 获取今天和明天的班次
     today_shift = get_shift(day_offset=0)
     tomorrow_shift = get_shift(day_offset=1)
-
     data = {
-        "gregorian": {"value":huangli_info["gregorian"]},
-        "lunar": {"value":huangli_info["lunar"]},
-        "lunar_festival": {"value":huangli_info["lunar_festival"]},
-        "festival": {"value":huangli_info["festival"]},
-        "fitness": {"value":huangli_info["fitness"]},
-        "taboo": {"value":huangli_info["taboo"]},
-        "weather_today": {"value":today_weather['textDay']},
-        "temperature_today": {"value":today_weather['tempMax']},
-        "weather_tomorrow": {"value":tomorrow_weather['textDay']},
-        "temperature_tomorrow": {"value":tomorrow_weather['tempMax']},
-        "shift_today": {"value":today_shift},
-        "shift_tomorrow": {"value":tomorrow_shift},
+        "gregorian": {"value": huangli_info["gregorian"]},
+        "lunar": {"value": huangli_info["lunar"]},
+        "lunar_festival": {"value": huangli_info["lunar_festival"]},
+        "festival": {"value": huangli_info["festival"]},
+        "fitness": {"value": huangli_info["fitness"]},
+        "taboo": {"value": huangli_info["taboo"]},
+        "weather_today": {"value": today_weather['textDay']},
+        "temperature_today": {"value": today_weather['tempMax']},
+        "weather_tomorrow": {"value": tomorrow_weather['textDay']},
+        "temperature_tomorrow": {"value": tomorrow_weather['tempMax']},
+        "shift_today": {"value": f"今天的班次是：{today_shift}"},
+        "shift_tomorrow": {"value": f"明天的班次是：{tomorrow_shift}"},
         "love_days": {"value": get_count()},
         "birthday_left": {"value": get_birthday()},
-        "words": {"value": get_words(), "color": get_random_color()}
+        "word1": {"value": word1, "color": get_random_color()},  # 上半句
+        "word2": {"value": word2, "color": get_random_color()}, # 下半句
+        "word3": {"value": word3, "color": get_random_color()}
     }
 
     res = wm.send_template(user_id, template_id, data)
