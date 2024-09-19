@@ -101,7 +101,7 @@ def get_words():
 
         word1 = full_sentence[:19].strip()  # 前19个字
         word2 = full_sentence[19:38].strip()
-        word3=full_sentence[38:57]# 剩余部分
+        word3=full_sentence[38:57]
         word4=full_sentence[57:76]
         word5=full_sentence[76:]
         return word1, word2,word3,word4,word5
@@ -178,8 +178,8 @@ def send_message():
         "shift_tomorrow": {"value": f"明天的班次是：{tomorrow_shift}"},
         "love_days": {"value": get_count()},
         "birthday_left": {"value": get_birthday()},
-        "word1": {"value": word1, "color": get_random_color()},  # 上半句
-        "word2": {"value": word2, "color": get_random_color()}, # 下半句
+        "word1": {"value": word1, "color": get_random_color()}, 
+        "word2": {"value": word2, "color": get_random_color()},
         "word3": {"value": word3, "color": get_random_color()},
         "word4": {"value": word4, "color": get_random_color()},
         "word5": {"value": word5, "color": get_random_color()}
