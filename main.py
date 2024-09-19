@@ -98,12 +98,13 @@ def get_words():
         full_sentence = response.json()['result']['content']
 
         # 将句子拆分为两部分
-        mid_index = len(full_sentence) // 2
+
         word1 = full_sentence[:19].strip()  # 前19个字
         word2 = full_sentence[19:38].strip()
-        word3=full_sentence[38:]# 剩余部分
-
-        return word1, word2,word3
+        word3=full_sentence[38:57]# 剩余部分
+        word4=full_sentence[57:76]
+        word5=full_sentence[76:]
+        return word1, word2,word3,word4,word5
     return "获取每日一句失败", ""
 # 获取黄历信息
 def get_huangli():
@@ -146,7 +147,7 @@ def get_random_color():
 def send_message():
     today_weather, tomorrow_weather = get_weather()
     huangli_info = get_huangli()
-    word1, word2,word3 = get_words()  # 获取完整的每日一句并分割
+    word1, word2,word3,word4,word5 = get_words()  # 获取完整的每日一句并分割
 
     client = WeChatClient(app_id, app_secret)
     wm = WeChatMessage(client)
@@ -179,7 +180,9 @@ def send_message():
         "birthday_left": {"value": get_birthday()},
         "word1": {"value": word1, "color": get_random_color()},  # 上半句
         "word2": {"value": word2, "color": get_random_color()}, # 下半句
-        "word3": {"value": word3, "color": get_random_color()}
+        "word3": {"value": word3, "color": get_random_color()},
+        "word4": {"value": word4, "color": get_random_color()},
+        "word5": {"value": word5, "color": get_random_color()}
     }
 
     res = wm.send_template(user_id, template_id, data)
