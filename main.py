@@ -1,4 +1,3 @@
-import os
 import config  # 加载 dotenv 包
 from datetime import date, datetime, timedelta
 import random
@@ -93,19 +92,28 @@ def get_birthday():
 
 # 获取每日一句
 def get_words():
-    response = requests.get(f"https://apis.tianapi.com/wanan/index?key={word_key}")
+    current_time = datetime.now().time()
+    noon_time = datetime.strptime("12:00", "%H:%M").time()  # 中午12点
+
+    if current_time < noon_time:
+        # 时间在中午12点之前，调用早安接口
+        response = requests.get(f"https://apis.tianapi.com/zaoan/index?key={word_key}")
+    else:
+        # 时间在中午12点之后，调用晚安接口
+        response = requests.get(f"https://apis.tianapi.com/wanan/index?key={word_key}")
+
     if response.status_code == 200:
         full_sentence = response.json()['result']['content']
 
-        # 将句子拆分为两部分
-
+        # 将句子拆分为多部分
         word1 = full_sentence[:19].strip()  # 前19个字
-        word2 = full_sentence[19:38].strip()
-        word3=full_sentence[38:57]
-        word4=full_sentence[57:76]
-        word5=full_sentence[76:]
-        return word1, word2,word3,word4,word5
-    return "获取每日一句失败", ""
+        word2 = full_sentence[19:38].strip()  # 接下来19个字
+        word3 = full_sentence[38:57].strip()  # 之后19个字
+        word4 = full_sentence[57:76].strip()  # 接下来19个字
+        word5 = full_sentence[76:].strip()  # 剩下部分
+        return word1, word2, word3, word4, word5
+    return "获取每日一句失败", "", "", "", ""
+
 # 获取黄历信息
 def get_huangli():
     huangli_url = f"https://apis.tianapi.com/lunar/index?key={word_key}"
@@ -174,12 +182,12 @@ def send_message():
         "temperature_today": {"value": today_weather['tempMax']},
         "weather_tomorrow": {"value": tomorrow_weather['textDay']},
         "temperature_tomorrow": {"value": tomorrow_weather['tempMax']},
-        "shift_today": {"value": today_shift},
-        "shift_tomorrow": {"value": tomorrow_shift},
+        "shift_today": {"value": f"今天的班次是：{today_shift}"},
+        "shift_tomorrow": {"value": f"明天的班次是：{tomorrow_shift}"},
         "love_days": {"value": get_count()},
         "birthday_left": {"value": get_birthday()},
-        "word1": {"value": word1, "color": get_random_color()}, 
-        "word2": {"value": word2, "color": get_random_color()},
+        "word1": {"value": word1, "color": get_random_color()},  # 上半句
+        "word2": {"value": word2, "color": get_random_color()}, # 下半句
         "word3": {"value": word3, "color": get_random_color()},
         "word4": {"value": word4, "color": get_random_color()},
         "word5": {"value": word5, "color": get_random_color()}
